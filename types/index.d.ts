@@ -3,7 +3,7 @@ type FBEventType = {
   eventId?: string
   emails?: Array<string> | null
   phones?: Array<string> | null
-  products: {
+  products?: {
     sku: string
     quantity: number
   }[]

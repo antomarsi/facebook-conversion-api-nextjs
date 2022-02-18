@@ -14,30 +14,32 @@ const request_1 = require("../utils/request");
  * @constructor
  */
 const fbEventsHandler = (req, res) => {
-    if (req.method !== 'POST') {
+    if (req.method !== "POST") {
         return res.status(400).json({
-            message: 'This route only accepts POST requests',
+            message: "This route only accepts POST requests",
         });
     }
     if (!process.env.FB_ACCESS_TOKEN) {
-        throw new Error('Missing FB_ACCESS_TOKEN in environment file.');
+        throw new Error("Missing FB_ACCESS_TOKEN in environment file.");
     }
     if (!process.env.NEXT_PUBLIC_FB_PIXEL_ID) {
-        throw new Error('Missing NEXT_PUBLIC_FB_PIXEL_ID in environment file.');
+        throw new Error("Missing NEXT_PUBLIC_FB_PIXEL_ID in environment file.");
     }
-    const { eventName, eventId, emails, phones, products, value, currency, } = req.body;
-    if (!eventName || !products || (products === null || products === void 0 ? void 0 : products.length) < 1) {
+    const { eventName, eventId, emails, phones, products, value, currency } = req.body;
+    if (!eventName) {
         return res.status(400).json({
-            error: 'The request body is missing required parameters',
+            error: "The request body is missing required parameters",
         });
     }
-    const FBConversionAPI = new facebook_conversion_api_1.default(process.env.FB_ACCESS_TOKEN, process.env.NEXT_PUBLIC_FB_PIXEL_ID, emails !== null && emails !== void 0 ? emails : null, phones !== null && phones !== void 0 ? phones : null, (0, request_1.getClientIpAddress)(req), (0, request_1.getClientUserAgent)(req), (0, request_1.getClientFbp)(req), (0, request_1.getClientFbc)(req), (process.env.NEXT_PUBLIC_FB_DEBUG === 'true'));
-    products.forEach((product) => {
-        FBConversionAPI.addProduct(product.sku, product.quantity);
-    });
+    const FBConversionAPI = new facebook_conversion_api_1.default(process.env.FB_ACCESS_TOKEN, process.env.NEXT_PUBLIC_FB_PIXEL_ID, emails !== null && emails !== void 0 ? emails : null, phones !== null && phones !== void 0 ? phones : null, (0, request_1.getClientIpAddress)(req), (0, request_1.getClientUserAgent)(req), (0, request_1.getClientFbp)(req), (0, request_1.getClientFbc)(req), process.env.NEXT_PUBLIC_FB_DEBUG === "true");
+    if (products && products.length > 1) {
+        products.forEach((product) => {
+            FBConversionAPI.addProduct(product.sku, product.quantity);
+        });
+    }
     FBConversionAPI.sendEvent(eventName, (0, request_1.getClientRefererUrl)(req), { value, currency }, { eventId });
     return res.status(200).json({
-        status: 'Success',
+        status: "Success",
     });
 };
 exports.fbEventsHandler = fbEventsHandler;
