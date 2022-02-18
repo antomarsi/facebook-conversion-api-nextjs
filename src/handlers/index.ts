@@ -1,13 +1,13 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import FacebookConversionAPI from '@rivercode/facebook-conversion-api';
+import type { NextApiRequest, NextApiResponse } from "next";
+import FacebookConversionAPI from "@rivercode/facebook-conversion-api";
 import {
   getClientRefererUrl,
   getClientIpAddress,
   getClientUserAgent,
   getClientFbp,
   getClientFbc,
-} from '../utils/request';
-import FBEventType from '../../types';
+} from "../utils/request";
+import FBEventType from "../../types";
 
 /**
  * Facebook Conversion API Event Handler for Next.js.
@@ -17,33 +17,26 @@ import FBEventType from '../../types';
  * @constructor
  */
 const fbEventsHandler = (req: NextApiRequest, res: NextApiResponse) => {
-  if (req.method !== 'POST') {
+  if (req.method !== "POST") {
     return res.status(400).json({
-      message: 'This route only accepts POST requests',
+      message: "This route only accepts POST requests",
     });
   }
 
   if (!process.env.FB_ACCESS_TOKEN) {
-    throw new Error('Missing FB_ACCESS_TOKEN in environment file.');
+    throw new Error("Missing FB_ACCESS_TOKEN in environment file.");
   }
 
   if (!process.env.NEXT_PUBLIC_FB_PIXEL_ID) {
-    throw new Error('Missing NEXT_PUBLIC_FB_PIXEL_ID in environment file.');
+    throw new Error("Missing NEXT_PUBLIC_FB_PIXEL_ID in environment file.");
   }
 
-  const {
-    eventName,
-    eventId,
-    emails,
-    phones,
-    products,
-    value,
-    currency,
-  } = req.body as FBEventType;
+  const { eventName, eventId, emails, phones, products, value, currency } =
+    req.body as FBEventType;
 
-  if (!eventName || !products || products?.length < 1) {
+  if (!eventName) {
     return res.status(400).json({
-      error: 'The request body is missing required parameters',
+      error: "The request body is missing required parameters",
     });
   }
 
@@ -56,17 +49,24 @@ const fbEventsHandler = (req: NextApiRequest, res: NextApiResponse) => {
     getClientUserAgent(req),
     getClientFbp(req),
     getClientFbc(req),
-    (process.env.NEXT_PUBLIC_FB_DEBUG === 'true'),
+    process.env.NEXT_PUBLIC_FB_DEBUG === "true"
   );
 
-  products.forEach((product) => {
-    FBConversionAPI.addProduct(product.sku, product.quantity);
-  });
+  if (products && products.length > 1) {
+    products.forEach((product) => {
+      FBConversionAPI.addProduct(product.sku, product.quantity);
+    });
+  }
 
-  FBConversionAPI.sendEvent(eventName, getClientRefererUrl(req), { value, currency }, { eventId });
+  FBConversionAPI.sendEvent(
+    eventName,
+    getClientRefererUrl(req),
+    { value, currency },
+    { eventId }
+  );
 
   return res.status(200).json({
-    status: 'Success',
+    status: "Success",
   });
 };
 
