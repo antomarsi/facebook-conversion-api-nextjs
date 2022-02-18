@@ -1,4 +1,4 @@
-import FBEventType from '../types';
+import FBEventType from "../types";
 declare global {
     interface Window {
         fbq: any;
@@ -16,5 +16,5 @@ declare const fbPageView: () => void;
  * @param event
  * @constructor
  */
-declare const fbEvent: (event: FBEventType) => void;
+declare const fbEvent: (event: FBEventType) => Promise<void>;
 export { fbEvent, fbPageView };

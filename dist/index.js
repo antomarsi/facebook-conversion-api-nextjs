@@ -12,8 +12,8 @@ const debug_1 = __importDefault(require("./utils/debug"));
  * @constructor
  */
 const fbPageView = () => {
-    (0, debug_1.default)('Client Side Event: PageView');
-    window.fbq('track', 'PageView');
+    (0, debug_1.default)("Client Side Event: PageView");
+    window.fbq("track", "PageView");
 };
 exports.fbPageView = fbPageView;
 /**
@@ -24,36 +24,45 @@ exports.fbPageView = fbPageView;
  */
 const fbEvent = (event) => {
     const eventId = event.eventId ? event.eventId : (0, uuid_1.v4)();
-    setTimeout(() => {
-        var _a;
-        if (event.enableStandardPixel) {
-            window.fbq('track', event.eventName, {
-                content_type: 'product',
-                contents: (_a = event.products) === null || _a === void 0 ? void 0 : _a.map((product) => ({ id: product.sku, quantity: product.quantity })),
-                value: event.value,
-                currency: event.currency,
-            }, { eventID: eventId });
-            (0, debug_1.default)(`Client Side Event: ${event.eventName}`);
-        }
-        fetch('/api/fb-events', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                eventName: event.eventName,
-                eventId,
-                emails: event.emails,
-                phones: event.phones,
-                products: event.products,
-                value: event.value,
-                currency: event.currency,
-            }),
-        }).then((response) => {
-            (0, debug_1.default)(`Server Side Event: ${event.eventName} (${response.status})`);
-        }).catch((error) => {
-            (0, debug_1.default)(`Server Side Event: ${event.eventName} (${error.status})`);
-        });
-    }, 250);
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            var _a;
+            if (event.enableStandardPixel) {
+                window.fbq("track", event.eventName, {
+                    content_type: "product",
+                    contents: (_a = event.products) === null || _a === void 0 ? void 0 : _a.map((product) => ({
+                        id: product.sku,
+                        quantity: product.quantity,
+                    })),
+                    value: event.value,
+                    currency: event.currency,
+                }, { eventID: eventId });
+                (0, debug_1.default)(`Client Side Event: ${event.eventName}`);
+            }
+            fetch("/api/fb-events", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    eventName: event.eventName,
+                    eventId,
+                    emails: event.emails,
+                    phones: event.phones,
+                    products: event.products,
+                    value: event.value,
+                    currency: event.currency,
+                }),
+            })
+                .then((response) => {
+                resolve();
+                (0, debug_1.default)(`Server Side Event: ${event.eventName} (${response.status})`);
+            })
+                .catch((error) => {
+                reject();
+                (0, debug_1.default)(`Server Side Event: ${event.eventName} (${error.status})`);
+            });
+        }, 250);
+    });
 };
 exports.fbEvent = fbEvent;
