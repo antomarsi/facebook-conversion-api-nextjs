@@ -24,19 +24,25 @@ exports.fbPageView = fbPageView;
  */
 const fbEvent = (event) => {
     const eventId = event.eventId ? event.eventId : (0, uuid_1.v4)();
+    const eventTracker = event.eventTracker ? event.eventTracker : "track";
     return new Promise((resolve, reject) => {
         setTimeout(() => {
             var _a;
             if (event.enableStandardPixel) {
-                window.fbq("track", event.eventName, {
-                    content_type: "product",
-                    contents: (_a = event.products) === null || _a === void 0 ? void 0 : _a.map((product) => ({
-                        id: product.sku,
-                        quantity: product.quantity,
-                    })),
-                    value: event.value,
-                    currency: event.currency,
-                }, { eventID: eventId });
+                if (event.ignoreProduct) {
+                    window.fbq(eventTracker, event.eventName);
+                }
+                else {
+                    window.fbq(eventTracker, event.eventName, {
+                        content_type: "product",
+                        contents: (_a = event.products) === null || _a === void 0 ? void 0 : _a.map((product) => ({
+                            id: product.sku,
+                            quantity: product.quantity,
+                        })),
+                        value: event.value,
+                        currency: event.currency,
+                    }, { eventID: eventId });
+                }
                 (0, debug_1.default)(`Client Side Event: ${event.eventName}`);
             }
             fetch("/api/fb-events", {
