@@ -27,23 +27,29 @@ const fbPageView = (): void => {
  */
 const fbEvent = (event: FBEventType): Promise<void> => {
   const eventId = event.eventId ? event.eventId : uuidv4();
+  const eventTracker = event.eventTracker ? event.eventTracker : "track";
+
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       if (event.enableStandardPixel) {
-        window.fbq(
-          "track",
-          event.eventName,
-          {
-            content_type: "product",
-            contents: event.products?.map((product) => ({
-              id: product.sku,
-              quantity: product.quantity,
-            })),
-            value: event.value,
-            currency: event.currency,
-          },
-          { eventID: eventId }
-        );
+        if (event.ignoreProduct) {
+          window.fbq(eventTracker, event.eventName);
+        } else {
+          window.fbq(
+            eventTracker,
+            event.eventName,
+            {
+              content_type: "product",
+              contents: event.products?.map((product) => ({
+                id: product.sku,
+                quantity: product.quantity,
+              })),
+              value: event.value,
+              currency: event.currency,
+            },
+            { eventID: eventId }
+          );
+        }
 
         debug(`Client Side Event: ${event.eventName}`);
       }
